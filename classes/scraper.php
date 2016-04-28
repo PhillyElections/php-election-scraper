@@ -1,7 +1,8 @@
 <?php
+
 use Goutte\Client;
 
-class Scraper
+class scraper
 {
     protected $config;
     public $client;
@@ -12,7 +13,7 @@ class Scraper
 
     public function __construct(&$client)
     {
-        $this->config = json_decode(file_get_contents('config.json'));
+        $this->config = getConfig();
         $this->client = &$client;
         $this->goHome();
     }
@@ -24,13 +25,18 @@ class Scraper
 
     public function goHome($crawl = true)
     {
-	if ($crawl) {
+        if ($crawl) {
             // we're going to the ward form
             $this->go($this->config->source->filter_url);
         } else {
             // we're going to the static/home page
             $this->go($this->config->source->static_url);
         }
+    }
+
+    private function getConfig()
+    {
+        json_decode(file_get_contents('config.json'));
     }
 
     public function getForm($nav)
@@ -48,7 +54,7 @@ class Scraper
     {
 
         // read the id/value pairs for the
-        return $crawler->filter('#' . $nav['select'] . ' option')->each(function ($node) {
+        return $crawler->filter('#'.$nav['select'].' option')->each(function ($node) {
             if ($node) {
                 return array('id' => $node->attr('value'), 'value' => $node->text());
             }
@@ -82,7 +88,6 @@ class Scraper
                     break;
 
                 case 'h3':
-
                     // write extant result
                     if (count($result)) {
                         array_push($results['results'], array('party' => $partyId, 'progress' => $progress, 'race' => $raceId, 'desc' => $descId, 'candidates' => $result));
@@ -112,8 +117,8 @@ class Scraper
                     break;
 
                 case 'h4':
-                    $temp = explode("%", $row['nodeText']);
-                    $progress = "0";
+                    $temp = explode('%', $row['nodeText']);
+                    $progress = '0';
                     $desc = count($temp) === 1 ? $temp[0] : $temp;
                     if (count($temp) === 2) {
                         $progress = trim($temp[0]);
@@ -126,7 +131,6 @@ class Scraper
                     break;
 
                 case 'table':
-
                     // pull out the result block
                     $temp = $row['node']->filter('tr')->each(function ($node) {
                         return $node->filter('td')->each(function ($node) {
@@ -170,14 +174,14 @@ class Scraper
                                 break;
 
                             case 3:
-                                $partyId = array_search("", $indexes['parties']);
+                                $partyId = array_search('', $indexes['parties']);
                                 array_push($result, array('name' => $nameId, 'party' => $partyId, 'percentage' => (float) trim($percentage[0]), 'votes' => (int) trim($values[1])));
                                 array_push($indexes['votes'][$indexes['current']][$raceId][$nameId], array('party' => $partyId, 'perc' => (float) trim($percentage[0]), 'votes' => (int) trim($values[1])));
 
                                 break;
 
                             default:
-                                $this->logthis('unexpected content: ' . json_encode($values), 'ERROR');
+                                $this->logthis('unexpected content: '.json_encode($values), 'ERROR');
 
                                 // don't use this set
                                 return;
@@ -194,26 +198,28 @@ class Scraper
         }
 
         unset($rows, $result);
+
         return $results;
     }
 
-    public function logthis($message, $status = "OK")
+    public function logthis($message, $status = 'OK')
     {
-        file_put_contents('log', date(DATE_ATOM) . "\t" . $status . "\t" . $message . "\n", FILE_APPEND);
+        file_put_contents('log', date(DATE_ATOM)."\t".$status."\t".$message."\n", FILE_APPEND);
     }
 
     public function isUnlocked()
     {
         $check = json_decode(file_get_contents('status.json'));
-        return $check->status === "unlocked";
+
+        return $check->status === 'unlocked';
     }
 
-    public function unlock($status = "unlocked")
+    public function unlock($status = 'unlocked')
     {
         $this->setStatus($status);
     }
 
-    public function lock($status = "locked")
+    public function lock($status = 'locked')
     {
         $this->setStatus($status);
     }
@@ -240,17 +246,17 @@ class Scraper
             if (!$sftp->login($this->config->target->user, $this->config->target->pass)) {
                 throw new Exception('SFTP Login Failed');
             } else {
-                if (!$sftp->put($this->config->target->path . "/" . 'results.json', 'results.json', NET_SFTP_LOCAL_FILE)) {
+                if (!$sftp->put($this->config->target->path.'/'.'results.json', 'results.json', NET_SFTP_LOCAL_FILE)) {
                     throw new Exception('SFTP Transfer Failed');
                 } else {
-                    $this->logthis("successful transfer to " . $this->config->target->server);
+                    $this->logthis('successful transfer to '.$this->config->target->server);
                 }
             }
-        } else if ($this->config->target->path) {
-            $this->logthis("saving to loal web path " . $this->config->target->path, 'OK');
-            copy('results.json', $this->config->target->path . "/" . 'results.json');
+        } elseif ($this->config->target->path) {
+            $this->logthis('saving to loal web path '.$this->config->target->path, 'OK');
+            copy('results.json', $this->config->target->path.'/'.'results.json');
         } else {
-            $this->logthis("configuration (config.json) missing a target server and path", 'ERROR');
+            $this->logthis('configuration (config.json) missing a target server and path', 'ERROR');
         }
     }
 }
