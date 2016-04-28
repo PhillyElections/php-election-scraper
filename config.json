@@ -1,0 +1,12 @@
+{
+  source:[
+    "filter_url":"",
+    "static_url":""
+  ],
+  target:[
+    "server":"",
+    "user":"",
+    "pass":"",
+    "path":""
+  ]
+}
