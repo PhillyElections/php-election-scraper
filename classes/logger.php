@@ -6,14 +6,14 @@
  */
 class logger
 {
-    private LOGFILE = "log";
-    private OK = "OK";
+    private $LOGFILE = "log";
+    private $OK = "OK";
 
-    public function __construct($message, $status = OK)
+    public function __construct($message, $status = $this->OK)
     {
         if (!$message) {
             return;
         }
-        file_put_contents(LOGFILE, implode("\t", array(date(DATE_ATOM),$status,$message), FILE_APPEND);
+        file_put_contents($this->LOGFILE, implode("\t", array(date(DATE_ATOM),$status,$message), FILE_APPEND);
     }
 }
