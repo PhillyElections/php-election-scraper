@@ -1,14 +1,18 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
+
+require __DIR__.'/vendor/autoload.php';
 use Goutte\Client;
+
 error_reporting(E_ERROR);
-require_once 'scraper.php';
+require_once 'classes/scraper.php';
+require_once 'classes/logger.php';
+require_once 'classes/locker.php';
 
 $t1 = microtime(1);
 
 $client = new Client();
 $scraper = new Scraper($client);
-$scraper->logthis("run started");
+$scraper->logthis('run started');
 
 try {
     if (!$scraper->isUnlocked()) {
@@ -44,7 +48,7 @@ try {
     // lets shift off the city navigation
     foreach ($wardNavigation as $wardNav) {
         // don't use '0' or 0, force '00', which won't resolve to ''
-        $indexes['current'] = $wardNav['value'] === "All Wards" ? "00" : (int) $wardNav['value'];
+        $indexes['current'] = $wardNav['value'] === 'All Wards' ? '00' : (int) $wardNav['value'];
         $results['wards'][$wardNav['value']] = [];
         $divisionNavigation[$wardNav['value']] = [];
         $page = $scraper->getPage($scraper->wardNav, $wardNav['id']);
@@ -52,7 +56,7 @@ try {
         $divisionNavigation[$wardNav['value']] = $scraper->getNavData($scraper->divisionNav, $page);
     }
 } catch (Exception $e) {
-    $scraper->logthis("unable to complete run: " . $e->getMessage(), 'ERROR');
+    $scraper->logthis('unable to complete run: '.$e->getMessage(), 'ERROR');
     $scraper->unlock();
     ddd($e->getMessage(), $e, $results);
 }
@@ -75,7 +79,7 @@ try {
     // from same server use this
     //$scraper->wwSave($results);
     $scraper->save($results);
-    $scraper->logthis("successful result pull taking " . $running_time . " seconds.");
+    $scraper->logthis('successful result pull taking '.$running_time.' seconds.');
     $scraper->unlock();
     $scraper->push();
 } catch (Exception $e) {
