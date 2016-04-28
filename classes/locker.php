@@ -4,7 +4,7 @@
  */
 class locker
 {
-    private LOCK = 'locked';
+    private LOCKED = 'locked';
     private UNLOCKED = 'unlocked';
     private FILENAME = 'status.json';
 
@@ -25,9 +25,9 @@ class locker
      *
      * @param string $status (description)
      */
-    public function lock($status = $this->LOCKED)
+    public function lock()
     {
-        $this->setStatus($status);
+        $this->setStatus($this->LOCKED);
     }
 
     /**
@@ -35,9 +35,9 @@ class locker
      *
      * @param string $status (description)
      */
-    public function unlock($status = $this->UNLOCKED)
+    public function unlock()
     {
-        $this->setStatus($status);
+        $this->setStatus($this->UNLOCKED);
     }
 
     /**
