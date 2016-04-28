@@ -3,8 +3,7 @@ use Goutte\Client;
 
 class Scraper
 {
-    public $debug = false;
-    public $pageUrl = 'http://filter.phillyelectionresults.com/comprehensive.aspx';
+    protected $config;
     public $client;
     public $crawler;
     public $page;
@@ -13,6 +12,7 @@ class Scraper
 
     public function __construct(&$client)
     {
+        $this->config = json_decode(file_get_contents('config.json'));
         $this->client = &$client;
         $this->goHome();
     }
@@ -22,9 +22,15 @@ class Scraper
         $this->crawler = $this->client->request($method, $url);
     }
 
-    public function goHome()
+    public function goHome($crawl = true)
     {
-        $this->go($this->pageUrl);
+	if ($crawl) {
+            // we're going to the ward form
+            $this->go($this->config->source->filter_url);
+        } else {
+            // we're going to the static/home page
+            $this->go($this->config->source->static_url);
+        }
     }
 
     public function getForm($nav)
@@ -229,23 +235,22 @@ class Scraper
 
     public function push()
     {
-        $config = json_decode(file_get_contents('settings.json'));
-        if ($config->server) {
-            $sftp = new Net_SFTP($config->server);
-            if (!$sftp->login($config->user, $config->pass)) {
+        if ($this->config->target->server) {
+            $sftp = new Net_SFTP($this->config->target->server);
+            if (!$sftp->login($this->config->target->user, $this->config->target->pass)) {
                 throw new Exception('SFTP Login Failed');
             } else {
-                if (!$sftp->put($config->path . "/" . 'results.json', 'results.json', NET_SFTP_LOCAL_FILE)) {
+                if (!$sftp->put($this->config->target->path . "/" . 'results.json', 'results.json', NET_SFTP_LOCAL_FILE)) {
                     throw new Exception('SFTP Transfer Failed');
                 } else {
-                    $this->logthis("successful transfer to " . $config->server);
+                    $this->logthis("successful transfer to " . $this->config->target->server);
                 }
             }
-        } else if ($config->path) {
-            $this->logthis("saving to loal web path " . $config->path, 'OK');
-            rename('results.json', $config->path . "/" . 'results.json');
+        } else if ($this->config->target->path) {
+            $this->logthis("saving to loal web path " . $this->config->target->path, 'OK');
+            copy('results.json', $this->config->target->path . "/" . 'results.json');
         } else {
-            $this->logthis("configuration (settings.json) missing a server and path", 'ERROR');
+            $this->logthis("configuration (config.json) missing a target server and path", 'ERROR');
         }
     }
 }
