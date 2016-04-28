@@ -212,7 +212,7 @@ class scraper
             $this->logger = new logger();
         }
 
-        return $this->logger($message, $status);
+        return $this->logger->write($message, $status);
     }
 
     public function save(&$results)
