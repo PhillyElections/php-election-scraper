@@ -10,17 +10,19 @@ require_once 'classes/locker.php';
 
 $t1 = microtime(1);
 
+$logger = new Logger();
+$locker = new Locker();
 $client = new Client();
 $scraper = new Scraper($client);
-$scraper->logthis('run started');
+$logger('run started');
 
 try {
     if (!$scraper->isUnlocked()) {
         throw new Exception('Already working...  waiting for the next ');
     }
-    $scraper->lock();
+    $locker->lock();
 } catch (Exception $e) {
-    $scraper->logthis($e->getMessage(), 'ERROR');
+    $logger($e->getMessage(), 'ERROR');
     ddd($e->getMessage(), $e);
 }
 
@@ -56,8 +58,8 @@ try {
         $divisionNavigation[$wardNav['value']] = $scraper->getNavData($scraper->divisionNav, $page);
     }
 } catch (Exception $e) {
-    $scraper->logthis('unable to complete run: '.$e->getMessage(), 'ERROR');
-    $scraper->unlock();
+    $logger('unable to complete run: '.$e->getMessage(), 'ERROR');
+    $locker->unlock();
     ddd($e->getMessage(), $e, $results);
 }
 $running_time = microtime(1) - $t1;
@@ -79,9 +81,9 @@ try {
     // from same server use this
     //$scraper->wwSave($results);
     $scraper->save($results);
-    $scraper->logthis('successful result pull taking '.$running_time.' seconds.');
-    $scraper->unlock();
+    $logger('successful result pull taking '.$running_time.' seconds.');
+    $locker->unlock();
     $scraper->push();
 } catch (Exception $e) {
-    $scraper->logthis($e->getMessage, 'ERROR');
+    $logger($e->getMessage, 'ERROR');
 }
