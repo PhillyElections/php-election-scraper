@@ -14,7 +14,7 @@ $logger = new logger();
 $locker = new locker();
 $client = new Client();
 $scraper = new scraper($client);
-$logger('run started');
+$logger->write('run started');
 
 try {
     if (!$scraper->isUnlocked()) {
@@ -22,7 +22,7 @@ try {
     }
     $locker->lock();
 } catch (Exception $e) {
-    $logger($e->getMessage(), 'ERROR');
+    $logger->write($e->getMessage(), 'ERROR');
     ddd($e->getMessage(), $e);
 }
 
@@ -58,7 +58,7 @@ try {
         $divisionNavigation[$wardNav['value']] = $scraper->getNavData($scraper->divisionNav, $page);
     }
 } catch (Exception $e) {
-    $logger('unable to complete run: '.$e->getMessage(), 'ERROR');
+    $logger->write('unable to complete run: '.$e->getMessage(), 'ERROR');
     $locker->unlock();
     ddd($e->getMessage(), $e, $results);
 }
@@ -81,9 +81,9 @@ try {
     // from same server use this
     //$scraper->wwSave($results);
     $scraper->save($results);
-    $logger('successful result pull taking '.$running_time.' seconds.');
+    $logger->write('successful result pull taking '.$running_time.' seconds.');
     $locker->unlock();
     $scraper->push();
 } catch (Exception $e) {
-    $logger($e->getMessage, 'ERROR');
+    $logger->write($e->getMessage, 'ERROR');
 }
