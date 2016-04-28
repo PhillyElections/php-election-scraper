@@ -6,7 +6,7 @@ class locker
 {
     private LOCKED = 'locked';
     private UNLOCKED = 'unlocked';
-    private FILENAME = 'status.json';
+    private STATUSFILE = 'status.json';
 
     /**
      * Determine if unlocked.
@@ -15,7 +15,7 @@ class locker
      */
     public function isUnlocked()
     {
-        $check = json_decode(file_get_contents($this->FILENAME));
+        $check = json_decode(file_get_contents($this->STATUSFILE));
 
         return $check->status === $this->UNLOCKED;
     }
