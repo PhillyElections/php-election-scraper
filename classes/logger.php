@@ -9,7 +9,7 @@ class logger
     private $LOGFILE = 'log';
     private $OK = 'OK';
 
-    public function __construct($message, $status)
+    public function write($message, $status)
     {
         if (!$message) {
             return;
