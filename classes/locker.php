@@ -1,9 +1,13 @@
 <?php
-/**
+ /**
  * Class Locker - prevent concurrent execution.
  */
 class locker
 {
+    private LOCK = 'locked';
+    private UNLOCKED = 'unlocked';
+    private FILENAME = 'status.json';
+
     /**
      * Determine if unlocked.
      *
@@ -11,27 +15,27 @@ class locker
      */
     public function isUnlocked()
     {
-        $check = json_decode(file_get_contents('status.json'));
+        $check = json_decode(file_get_contents($this->FILENAME));
 
         return $check->status === 'unlocked';
     }
 
     /**
-     * Lock.
+     * Locking accessor.
      *
      * @param string $status (description)
      */
-    public function lock($status = 'locked')
+    public function lock($status = $this->LOCKED)
     {
         $this->setStatus($status);
     }
 
     /**
-     * Unlock.
+     * Unlocking accessor.
      *
      * @param string $status (description)
      */
-    public function unlock($status = 'unlocked')
+    public function unlock($status = $this->UNLOCKED)
     {
         $this->setStatus($status);
     }
