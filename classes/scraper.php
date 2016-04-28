@@ -4,8 +4,8 @@ use Goutte\Client;
 
 class scraper
 {
-    private RESULTSFILE = 'results.json';
-    private CONFIGFILE = 'config.json';
+    private $RESULTSFILE = 'results.json';
+    private $CONFIGFILE = 'config.json';
     protected $config;
     protected $logger;
     public $client;
