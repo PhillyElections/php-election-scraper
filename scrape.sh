@@ -9,7 +9,7 @@ wait=1
 count=1
 
 #goto working directory
-cd "~/php-election-scraper"
+cd ~/php-election-scraper
 date >> log
 
 php -c /etc/php5/cli/php.ini -d debug_errors -f index.php
