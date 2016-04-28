@@ -17,7 +17,7 @@ class locker
     {
         $check = json_decode(file_get_contents($this->FILENAME));
 
-        return $check->status === 'unlocked';
+        return $check->status === $this->UNLOCKED;
     }
 
     /**
