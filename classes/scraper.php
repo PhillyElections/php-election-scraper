@@ -209,7 +209,7 @@ class scraper
     {
         if (!$this->logger) {
             require_once 'classes/logger.php';
-            $this->logger = new Logger();
+            $this->logger = new logger();
         }
 
         return $this->logger($message, $status);

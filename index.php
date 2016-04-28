@@ -10,10 +10,10 @@ require_once 'classes/locker.php';
 
 $t1 = microtime(1);
 
-$logger = new Logger();
-$locker = new Locker();
+$logger = new logger();
+$locker = new locker();
 $client = new Client();
-$scraper = new Scraper($client);
+$scraper = new scraper($client);
 $logger('run started');
 
 try {
