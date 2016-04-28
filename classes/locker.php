@@ -1,12 +1,12 @@
 <?php
- /**
+/**
  * Class Locker - prevent concurrent execution.
  */
 class locker
 {
-    private LOCKED = 'locked';
-    private UNLOCKED = 'unlocked';
-    private STATUSFILE = 'status.json';
+    private $LOCKED = 'locked';
+    private $UNLOCKED = 'unlocked';
+    private $STATUSFILE = 'status.json';
 
     /**
      * Determine if unlocked.
