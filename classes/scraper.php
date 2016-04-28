@@ -4,7 +4,10 @@ use Goutte\Client;
 
 class scraper
 {
+    private RESULTSFILE = 'results.json';
+    private CONFIGFILE = 'config.json';
     protected $config;
+    protected $logger;
     public $client;
     public $crawler;
     public $page;
@@ -36,7 +39,7 @@ class scraper
 
     private function getConfig()
     {
-        json_decode(file_get_contents('config.json'));
+        json_decode(file_get_contents($this->CONFIGFILE));
     }
 
     public function getForm($nav)
@@ -181,7 +184,7 @@ class scraper
                                 break;
 
                             default:
-                                $this->logthis('unexpected content: '.json_encode($values), 'ERROR');
+                                $this->logger('unexpected content: '.json_encode($values), 'ERROR');
 
                                 // don't use this set
                                 return;
@@ -202,41 +205,19 @@ class scraper
         return $results;
     }
 
-    public function logthis($message, $status = 'OK')
+    private function logger()
     {
-        file_put_contents('log', date(DATE_ATOM)."\t".$status."\t".$message."\n", FILE_APPEND);
-    }
+        if (!$this->logger) {
+            require_once 'classes/logger.php';
+            $this->logger = new Logger();
+        }
 
-    public function isUnlocked()
-    {
-        $check = json_decode(file_get_contents('status.json'));
-
-        return $check->status === 'unlocked';
-    }
-
-    public function unlock($status = 'unlocked')
-    {
-        $this->setStatus($status);
-    }
-
-    public function lock($status = 'locked')
-    {
-        $this->setStatus($status);
-    }
-
-    public function setStatus($status)
-    {
-        file_put_contents('status.json', json_encode(array('status' => $status, 'time' => date(DATE_ATOM))));
+        return $this->logger;
     }
 
     public function save(&$results)
     {
-        file_put_contents('results.json', json_encode($results));
-    }
-
-    public function wwSave(&$results)
-    {
-        file_put_contents('../public_html/whowon/results.json', json_encode($results));
+        file_put_contents($this->RESULTSFILE, json_encode($results));
     }
 
     public function push()
@@ -246,17 +227,17 @@ class scraper
             if (!$sftp->login($this->config->target->user, $this->config->target->pass)) {
                 throw new Exception('SFTP Login Failed');
             } else {
-                if (!$sftp->put($this->config->target->path.'/'.'results.json', 'results.json', NET_SFTP_LOCAL_FILE)) {
+                if (!$sftp->put($this->config->target->path.'/'.$this->RESULTSFILE, $this->RESULTSFILE, NET_SFTP_LOCAL_FILE)) {
                     throw new Exception('SFTP Transfer Failed');
                 } else {
-                    $this->logthis('successful transfer to '.$this->config->target->server);
+                    $this->logger('successful transfer to '.$this->config->target->server);
                 }
             }
         } elseif ($this->config->target->path) {
-            $this->logthis('saving to loal web path '.$this->config->target->path, 'OK');
-            copy('results.json', $this->config->target->path.'/'.'results.json');
+            $this->logger('saving to loal web path '.$this->config->target->path, 'OK');
+            copy($this->RESULTSFILE, $this->config->target->path.'/'.$this->RESULTSFILE);
         } else {
-            $this->logthis('configuration (config.json) missing a target server and path', 'ERROR');
+            $this->logger('configuration (config.json) missing a target server and path', 'ERROR');
         }
     }
 }
