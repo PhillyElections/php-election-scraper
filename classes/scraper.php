@@ -16,7 +16,7 @@ class scraper
 
     public function __construct(&$client)
     {
-        $this->config = getConfig();
+        $this->config = $this->getConfig();
         $this->client = &$client;
         $this->goHome();
     }
