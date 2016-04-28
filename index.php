@@ -17,7 +17,7 @@ $scraper = new scraper($client);
 $logger->write('run started');
 
 try {
-    if (!$scraper->isUnlocked()) {
+    if (!$locker->isUnlocked()) {
         throw new Exception('Already working...  waiting for the next ');
     }
     $locker->lock();
