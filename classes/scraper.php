@@ -184,7 +184,7 @@ class scraper
                                 break;
 
                             default:
-                                $this->logger('unexpected content: '.json_encode($values), 'ERROR');
+                                $this->log('unexpected content: '.json_encode($values), 'ERROR');
 
                                 // don't use this set
                                 return;
@@ -205,14 +205,14 @@ class scraper
         return $results;
     }
 
-    private function logger()
+    private function log($message, $status = 'OK')
     {
         if (!$this->logger) {
             require_once 'classes/logger.php';
             $this->logger = new Logger();
         }
 
-        return $this->logger;
+        return $this->logger($message, $status);
     }
 
     public function save(&$results)
@@ -230,14 +230,14 @@ class scraper
                 if (!$sftp->put($this->config->target->path.'/'.$this->RESULTSFILE, $this->RESULTSFILE, NET_SFTP_LOCAL_FILE)) {
                     throw new Exception('SFTP Transfer Failed');
                 } else {
-                    $this->logger('successful transfer to '.$this->config->target->server);
+                    $this->log('successful transfer to '.$this->config->target->server);
                 }
             }
         } elseif ($this->config->target->path) {
-            $this->logger('saving to loal web path '.$this->config->target->path, 'OK');
+            $this->log('saving to loal web path '.$this->config->target->path, 'OK');
             copy($this->RESULTSFILE, $this->config->target->path.'/'.$this->RESULTSFILE);
         } else {
-            $this->logger('configuration (config.json) missing a target server and path', 'ERROR');
+            $this->log('configuration (config.json) missing a target server and path', 'ERROR');
         }
     }
 }
