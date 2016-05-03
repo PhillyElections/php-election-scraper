@@ -2,3 +2,4 @@ vendor
 .git
 composer.lock
 *.json
+log*.txt

@@ -15,7 +15,7 @@ class locker
      */
     public function isUnlocked()
     {
-        $check = json_decode(file_get_contents($this->STATUSFILE));
+        $check = json_decode(file_get_contents(AP.DS.$this->STATUSFILE));
 
         return $check->status === $this->UNLOCKED;
     }
@@ -47,6 +47,6 @@ class locker
      */
     private function setStatus($status)
     {
-        file_put_contents('status.json', json_encode(array('status' => $status, 'time' => date(DATE_ATOM))));
+        file_put_contents(AP.DS.'status.json', json_encode(array('status' => $status, 'time' => date(DATE_ATOM))));
     }
 }

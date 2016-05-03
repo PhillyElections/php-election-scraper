@@ -16,18 +16,19 @@ class scraper
 
     public function __construct(&$client)
     {
-        $this->config = $this->getConfig();
+        $this->getConfig();
+        d("config:", $this->config->source->filter_url);
         $this->client = &$client;
         $this->goHome();
     }
 
     public function go($url, $method = 'GET')
-    {
+    {d($url, $method);
         $this->crawler = $this->client->request($method, $url);
     }
 
     public function goHome($crawl = true)
-    {
+    {d($crawl);
         if ($crawl) {
             // we're going to the ward form
             $this->go($this->config->source->filter_url);
@@ -39,7 +40,7 @@ class scraper
 
     private function getConfig()
     {
-        json_decode(file_get_contents($this->CONFIGFILE));
+        $this->config = json_decode(file_get_contents(dirname(__FILE__) ."/../".$this->CONFIGFILE));
     }
 
     public function getForm($nav)
@@ -64,7 +65,7 @@ class scraper
         });
     }
 
-    public function getResults(&$page, &$indexes)
+    public function getPageResults(&$page, &$indexes)
     {
         $results = $result = $temp = [];
         $resultType = '';
@@ -208,16 +209,21 @@ class scraper
     private function log($message, $status = 'OK')
     {
         if (!$this->logger) {
-            require_once 'classes/logger.php';
-            $this->logger = new logger();
+            $this->logger = new Katzgrau\KLogger\Logger(AP);
         }
-
-        return $this->logger->write($message, $status);
+        switch ($status) {
+           case 'OK':
+              return $this->logger->info($message);
+           break;
+           default:
+              return $this->logger->error($message);
+           break;
+        }
     }
 
     public function save(&$results)
     {
-        file_put_contents($this->RESULTSFILE, json_encode($results));
+        file_put_contents(AP.DS.$this->RESULTSFILE, json_encode($results));
     }
 
     public function push()
@@ -234,8 +240,8 @@ class scraper
                 }
             }
         } elseif ($this->config->target->path) {
-            $this->log('saving to loal web path '.$this->config->target->path, 'OK');
-            copy($this->RESULTSFILE, $this->config->target->path.'/'.$this->RESULTSFILE);
+            $this->log('saving to loal web path '.$this->config->target->path);
+            copy(AP.DS.$this->RESULTSFILE, $this->config->target->path.'/'.$this->RESULTSFILE);
         } else {
             $this->log('configuration (config.json) missing a target server and path', 'ERROR');
         }
