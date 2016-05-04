@@ -4,49 +4,88 @@ use Goutte\Client;
 
 class scraper
 {
-    private $RESULTSFILE = 'results.json';
-    private $CONFIGFILE = 'config.json';
-    protected $config;
-    protected $logger;
+    /**
+     * @var mixed
+     */
     public $client;
+
+    /**
+     * @var mixed
+     */
     public $crawler;
-    public $page;
+
+    /**
+     * @var array
+     */
     public $divisionNav = array('label' => 'divisions', 'select' => 'cboPrecincts', 'submit_button_id' => '#btnNext', 'submit_button_value' => 'View Division Results');
+
+    /**
+     * @var mixed
+     */
+    public $page;
+
+    /**
+     * @var array
+     */
     public $wardNav = array('label' => 'wards', 'select' => 'cboGeography', 'submit_button_id' => '#btnNext', 'submit_button_value' => 'View Results >>');
 
-    public function __construct(&$client)
+    /**
+     * @var mixed
+     */
+    protected $config;
+
+    /**
+     * @var mixed
+     */
+    protected $logger;
+
+    /**
+     * @param $client
+     */
+    public function __construct(&$client, &$config)
     {
-        $this->getConfig();
-        d("config:", $this->config->source->filter_url);
+        if (!$client || !$config) {
+            return new Exception('class scraper needs goutte/client and config objects.');
+        }
+        $this->config = &$config;
         $this->client = &$client;
+
         $this->goHome();
     }
 
-    public function go($url, $method = 'GET')
-    {d($url, $method);
-        $this->crawler = $this->client->request($method, $url);
-    }
-
-    public function goHome($crawl = true)
-    {d($crawl);
-        if ($crawl) {
-            // we're going to the ward form
-            $this->go($this->config->source->filter_url);
-        } else {
-            // we're going to the static/home page
-            $this->go($this->config->source->static_url);
-        }
-    }
-
-    private function getConfig()
-    {
-        $this->config = json_decode(file_get_contents(dirname(__FILE__) ."/../".$this->CONFIGFILE));
-    }
-
+    /**
+     * @param $nav
+     *
+     * @return mixed
+     */
     public function getForm($nav)
     {
         return $this->crawler->selectButton($nav['submit_button_value'])->form();
     }
+
+    /**
+     * @param $nav
+     * @param $crawler
+     *
+     * @return mixed
+     */
+    public function getNavData($nav, &$crawler)
+    {
+
+        // read the id/value pairs for the
+        return $crawler->filter('#' . $nav['select'] . ' option')->each(function ($node) {
+            if ($node) {
+                return array('id' => $node->attr('value'), 'value' => $node->text());
+            }
+        });
+    }
+
+    /**
+     * @param $nav
+     * @param $value
+     *
+     * @return mixed
+     */
     public function getPage($nav, $value)
     {
         $this->page = $this->client->submit($this->getForm($nav), array($nav['select'] => $value));
@@ -54,21 +93,16 @@ class scraper
         return $this->page;
     }
 
-    public function getNavData($nav, &$crawler)
-    {
-
-        // read the id/value pairs for the
-        return $crawler->filter('#'.$nav['select'].' option')->each(function ($node) {
-            if ($node) {
-                return array('id' => $node->attr('value'), 'value' => $node->text());
-            }
-        });
-    }
-
+    /**
+     * @param $page
+     * @param $indexes
+     *
+     * @return mixed
+     */
     public function getPageResults(&$page, &$indexes)
     {
-        $results = $result = $temp = [];
-        $resultType = '';
+        $results            = $result            = $temp            = [];
+        $resultType         = '';
         $results['results'] = [];
 
         // grab everything and drop it in one container
@@ -107,8 +141,8 @@ class scraper
                         array_push($indexes['races'], $race);
                     }
                     $raceId = array_search($race, $indexes['races']);
-                    $temp = explode('-', $race);
-                    $party = '';
+                    $temp   = explode('-', $race);
+                    $party  = '';
 
                     // the assumptions here could bite me in the ass
                     if ($resultType !== 'Question Results' && count($temp) > 1) {
@@ -121,12 +155,12 @@ class scraper
                     break;
 
                 case 'h4':
-                    $temp = explode('%', $row['nodeText']);
+                    $temp     = explode('%', $row['nodeText']);
                     $progress = '0';
-                    $desc = count($temp) === 1 ? $temp[0] : $temp;
+                    $desc     = count($temp) === 1 ? $temp[0] : $temp;
                     if (count($temp) === 2) {
                         $progress = trim($temp[0]);
-                        $desc = trim($temp[1]);
+                        $desc     = trim($temp[1]);
                     }
                     if (!in_array($desc, $indexes['descs'])) {
                         array_push($indexes['descs'], $desc);
@@ -185,7 +219,7 @@ class scraper
                                 break;
 
                             default:
-                                $this->log('unexpected content: '.json_encode($values), 'ERROR');
+                                $this->log('unexpected content: ' . json_encode($values), 'ERROR');
 
                                 // don't use this set
                                 return;
@@ -206,44 +240,47 @@ class scraper
         return $results;
     }
 
+    /**
+     * @param $url
+     * @param $method
+     */
+    public function go($url, $method = 'GET')
+    {
+        $this->crawler = $this->client->request($method, $url);
+    }
+
+    /**
+     * @param $crawl
+     */
+    public function goHome($crawl = true)
+    {
+        if ($crawl) {
+            // we're going to the ward form
+            $this->go($this->config->source->filter_url);
+        } else {
+            // we're going to the static/home page
+            $this->go($this->config->source->static_url);
+        }
+    }
+
+    /**
+     * @param $message
+     * @param $status
+     *
+     * @return mixed
+     */
     private function log($message, $status = 'OK')
     {
         if (!$this->logger) {
             $this->logger = new Katzgrau\KLogger\Logger(AP);
         }
         switch ($status) {
-           case 'OK':
-              return $this->logger->info($message);
-           break;
-           default:
-              return $this->logger->error($message);
-           break;
-        }
-    }
-
-    public function save(&$results)
-    {
-        file_put_contents(AP.DS.$this->RESULTSFILE, json_encode($results));
-    }
-
-    public function push()
-    {
-        if ($this->config->target->server) {
-            $sftp = new Net_SFTP($this->config->target->server);
-            if (!$sftp->login($this->config->target->user, $this->config->target->pass)) {
-                throw new Exception('SFTP Login Failed');
-            } else {
-                if (!$sftp->put($this->config->target->path.'/'.$this->RESULTSFILE, $this->RESULTSFILE, NET_SFTP_LOCAL_FILE)) {
-                    throw new Exception('SFTP Transfer Failed');
-                } else {
-                    $this->log('successful transfer to '.$this->config->target->server);
-                }
-            }
-        } elseif ($this->config->target->path) {
-            $this->log('saving to loal web path '.$this->config->target->path);
-            copy(AP.DS.$this->RESULTSFILE, $this->config->target->path.'/'.$this->RESULTSFILE);
-        } else {
-            $this->log('configuration (config.json) missing a target server and path', 'ERROR');
+            case 'OK':
+                return $this->logger->info($message);
+                break;
+            default:
+                return $this->logger->error($message);
+                break;
         }
     }
 }

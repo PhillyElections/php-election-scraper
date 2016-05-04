@@ -4,9 +4,25 @@
  */
 class locker
 {
+    /**
+     * @var string
+     */
     private $LOCKED = 'locked';
+    /**
+     * @var string
+     */
     private $UNLOCKED = 'unlocked';
-    private $STATUSFILE = 'status.json';
+
+    /**
+     * @param $config
+     */
+    public function __construct(&$config)
+    {
+        if (!$config) {
+            return new Exception('class locker config object.');
+        }
+        $this->config = &$config;
+    }
 
     /**
      * Determine if unlocked.
@@ -15,7 +31,7 @@ class locker
      */
     public function isUnlocked()
     {
-        $check = json_decode(file_get_contents(AP.DS.$this->STATUSFILE));
+        $check = json_decode(file_get_contents(AP . DS . $this->config->files->status));
 
         return $check->status === $this->UNLOCKED;
     }
@@ -47,6 +63,6 @@ class locker
      */
     private function setStatus($status)
     {
-        file_put_contents(AP.DS.'status.json', json_encode(array('status' => $status, 'time' => date(DATE_ATOM))));
+        file_put_contents(AP . DS . 'status.json', json_encode(array('status' => $status, 'time' => date(DATE_ATOM))));
     }
 }
