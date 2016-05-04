@@ -8,5 +8,9 @@
     "user":"",
     "pass":"",
     "path":""
+  },
+  "files":{
+    "results":"results.json",
+    "status":"status.json"
   }
 }
