@@ -16,4 +16,4 @@ finally, run:
 ```composer install```
 
 ...and edit settings.json to match your source and target (leave target values blank to move results to ~/public_html/whowon)
-I suggest running with ./scrape.sh or running periodically from cron.
+I suggest running with `./scrape.sh` or running periodically from cron.
