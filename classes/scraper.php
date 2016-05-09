@@ -88,8 +88,9 @@ class scraper
      */
     public function getPage($nav, $value)
     {
-        $this->page = $this->client->submit($this->getForm($nav), array($nav['select'] => $value));
-
+        $form       = $this->getForm($nav);
+        $this->page = $this->client->submit($form, array($nav['select'] => $value));
+        d($form, $this->page);
         return $this->page;
     }
 
